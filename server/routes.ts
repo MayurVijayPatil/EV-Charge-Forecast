@@ -21,16 +21,10 @@ export async function registerRoutes(
   });
 
   app.post(api.stats.upload.path, async (req, res) => {
-    // Basic CSV handling
-    // Expected format: year,region,ev_type,count,charging_demand_kwh
     try {
       if (!req.body) {
          return res.status(400).json({ message: "No data provided" });
       }
-      
-      // Handle raw body or simple JSON with a 'csv' field if client sends that
-      // For this MVP, let's assume client sends JSON { "csvData": "..." } or we handle text/csv
-      // But standard api.stats.upload input isn't strictly typed to body content, so we adapt.
       
       let csvContent = "";
       if (req.headers['content-type']?.includes('text/csv')) {
@@ -42,42 +36,159 @@ export async function registerRoutes(
       }
 
       const lines = csvContent.split('\n');
-      const statsToInsert: InsertEvStat[] = [];
-      let count = 0;
-
-      for (let i = 1; i < lines.length; i++) { // Skip header
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        const [yearStr, region, evType, countStr, demandStr] = line.split(',');
-        if (!yearStr || !region || !evType) continue;
-
-        const year = parseInt(yearStr);
-        const evCount = parseInt(countStr);
-        const demand = parseFloat(demandStr);
-
-        if (isNaN(year) || isNaN(evCount)) continue;
-
-        // Ensure region exists
-        await storage.createRegion({ name: region });
-
-        statsToInsert.push({
-          region,
-          year,
-          evType,
-          count: evCount,
-          chargingDemandKwh: isNaN(demand) ? 0 : demand,
-        });
-        count++;
+      if (lines.length < 2) {
+        return res.status(400).json({ message: "CSV is empty" });
       }
 
-      await storage.createEvStats(statsToInsert);
-      res.status(201).json({ message: "Upload successful", count });
+      const header = lines[0].toLowerCase();
+      
+      // Detect CSV format based on header
+      const isChargingPatterns = header.includes('charging station location') && header.includes('energy consumed');
+      const isEvStats = header.includes('year') && header.includes('region') && header.includes('ev_type');
+
+      if (isChargingPatterns) {
+        // Parse charging patterns format
+        return handleChargingPatternsCSV(lines, res);
+      } else if (isEvStats) {
+        // Parse EV stats format
+        return handleEvStatsCSV(lines, res);
+      } else {
+        return res.status(400).json({ message: "Unrecognized CSV format. Expected either EV stats (year, region, ev_type, count, charging_demand_kwh) or charging patterns data." });
+      }
     } catch (e) {
       console.error(e);
       res.status(500).json({ message: "Failed to process CSV" });
     }
   });
+
+  async function handleEvStatsCSV(lines: string[], res: any) {
+    const statsToInsert: InsertEvStat[] = [];
+    let count = 0;
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const [yearStr, region, evType, countStr, demandStr] = line.split(',');
+      if (!yearStr || !region || !evType) continue;
+
+      const year = parseInt(yearStr);
+      const evCount = parseInt(countStr);
+      const demand = parseFloat(demandStr);
+
+      if (isNaN(year) || isNaN(evCount)) continue;
+
+      await storage.createRegion({ name: region });
+
+      statsToInsert.push({
+        region,
+        year,
+        evType,
+        count: evCount,
+        chargingDemandKwh: isNaN(demand) ? 0 : demand,
+      });
+      count++;
+    }
+
+    await storage.createEvStats(statsToInsert);
+    res.status(201).json({ message: "Upload successful", count });
+  }
+
+  async function handleChargingPatternsCSV(lines: string[], res: any) {
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const recordsToInsert: InsertChargingRecord[] = [];
+    let count = 0;
+
+    // Map header indices
+    const idxLocation = header.findIndex(h => h.includes('location'));
+    const idxVehicle = header.findIndex(h => h.includes('vehicle model'));
+    const idxBattery = header.findIndex(h => h.includes('battery capacity'));
+    const idxEnergyConsumed = header.findIndex(h => h.includes('energy consumed'));
+    const idxDuration = header.findIndex(h => h.includes('charging duration'));
+    const idxRate = header.findIndex(h => h.includes('charging rate'));
+    const idxChargerType = header.findIndex(h => h.includes('charger type'));
+    const idxUserType = header.findIndex(h => h.includes('user type'));
+    const idxStartTime = header.findIndex(h => h.includes('charging start'));
+
+    // City to State mapping
+    const cityToState: Record<string, string> = {
+      'houston': 'Texas',
+      'san francisco': 'California',
+      'los angeles': 'California',
+      'chicago': 'Illinois',
+      'new york': 'New York'
+    };
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const parts = line.split(',').map(p => p.trim());
+      
+      const location = parts[idxLocation]?.toLowerCase() || '';
+      const state = Object.entries(cityToState).find(([city]) => location.includes(city))?.[1] || location;
+
+      const vehicleModel = parts[idxVehicle] || '';
+      const batteryCapacity = parseFloat(parts[idxBattery]) || null;
+      const energyConsumed = parseFloat(parts[idxEnergyConsumed]);
+      const duration = parseFloat(parts[idxDuration]) || null;
+      const rate = parseFloat(parts[idxRate]) || null;
+      const chargerType = parts[idxChargerType] || null;
+      const userType = parts[idxUserType] || null;
+      const startTimeStr = parts[idxStartTime];
+
+      if (isNaN(energyConsumed) || !startTimeStr) continue;
+
+      const startTime = new Date(startTimeStr);
+      if (isNaN(startTime.getTime())) continue;
+
+      recordsToInsert.push({
+        region: state || 'Unknown',
+        vehicleModel,
+        batteryCapacityKwh: isNaN(batteryCapacity as any) ? null : batteryCapacity,
+        energyConsumedKwh: energyConsumed,
+        chargingDurationHours: isNaN(duration as any) ? null : duration,
+        chargingRateKw: isNaN(rate as any) ? null : rate,
+        chargerType,
+        userType,
+        chargingStartTime: startTime,
+      });
+      count++;
+    }
+
+    await storage.createChargingRecords(recordsToInsert);
+    
+    // Also aggregate into ev_stats by region and year
+    const aggregated: Record<string, { region: string; year: number; count: number; totalDemand: number }> = {};
+    
+    for (const record of recordsToInsert) {
+      const year = record.chargingStartTime.getFullYear();
+      const key = `${record.region}-${year}`;
+      
+      if (!aggregated[key]) {
+        aggregated[key] = { region: record.region, year, count: 1, totalDemand: record.energyConsumedKwh };
+      } else {
+        aggregated[key].count += 1;
+        aggregated[key].totalDemand += record.energyConsumedKwh;
+      }
+      
+      await storage.createRegion({ name: record.region });
+    }
+
+    const statsToInsert: InsertEvStat[] = Object.values(aggregated).map(agg => ({
+      region: agg.region,
+      year: agg.year,
+      evType: 'Mixed',
+      count: agg.count,
+      chargingDemandKwh: agg.totalDemand
+    }));
+
+    if (statsToInsert.length > 0) {
+      await storage.createEvStats(statsToInsert);
+    }
+
+    res.status(201).json({ message: "Charging patterns uploaded successfully", count, statsCreated: statsToInsert.length });
+  }
 
   // === FORECASTING ===
 

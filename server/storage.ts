@@ -1,4 +1,4 @@
-import { evStats, forecasts, regions, type InsertEvStat, type InsertForecast, type InsertRegion } from "@shared/schema";
+import { evStats, forecasts, regions, chargingRecords, type InsertEvStat, type InsertForecast, type InsertRegion, type InsertChargingRecord } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 
@@ -6,6 +6,10 @@ export interface IStorage {
   // Stats
   getEvStats(region?: string, evType?: string): Promise<typeof evStats.$inferSelect[]>;
   createEvStats(stats: InsertEvStat[]): Promise<void>;
+  
+  // Charging Records
+  createChargingRecords(records: InsertChargingRecord[]): Promise<void>;
+  getChargingRecords(region?: string): Promise<typeof chargingRecords.$inferSelect[]>;
   
   // Forecasts
   getForecasts(region?: string, evType?: string): Promise<typeof forecasts.$inferSelect[]>;
@@ -51,6 +55,19 @@ export class DatabaseStorage implements IStorage {
   async createForecasts(forecastsData: InsertForecast[]) {
     if (forecastsData.length === 0) return [];
     return await db.insert(forecasts).values(forecastsData).returning();
+  }
+
+  async getChargingRecords(region?: string) {
+    let query = db.select().from(chargingRecords);
+    if (region) {
+      return await query.where(eq(chargingRecords.region, region));
+    }
+    return await query;
+  }
+
+  async createChargingRecords(records: InsertChargingRecord[]) {
+    if (records.length === 0) return;
+    await db.insert(chargingRecords).values(records);
   }
 
   async getRegions() {

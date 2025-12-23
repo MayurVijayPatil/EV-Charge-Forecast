@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { pgTable, text, serial, integer, doublePrecision, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -19,6 +20,21 @@ export const evStats = pgTable("ev_stats", {
   chargingDemandKwh: doublePrecision("charging_demand_kwh").notNull(),
 });
 
+// Detailed Charging Records
+export const chargingRecords = pgTable("charging_records", {
+  id: serial("id").primaryKey(),
+  region: text("region").notNull(),
+  vehicleModel: text("vehicle_model").notNull(),
+  batteryCapacityKwh: doublePrecision("battery_capacity_kwh"),
+  energyConsumedKwh: doublePrecision("energy_consumed_kwh").notNull(),
+  chargingDurationHours: doublePrecision("charging_duration_hours"),
+  chargingRateKw: doublePrecision("charging_rate_kw"),
+  chargerType: text("charger_type"), // DC Fast Charger, Level 1, Level 2
+  userType: text("user_type"), // Commuter, Casual Driver, Long-Distance Traveler
+  chargingStartTime: timestamp("charging_start_time").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Forecast Results
 export const forecasts = pgTable("forecasts", {
   id: serial("id").primaryKey(),
@@ -35,6 +51,7 @@ export const forecasts = pgTable("forecasts", {
 
 export const insertRegionSchema = createInsertSchema(regions).omit({ id: true });
 export const insertEvStatSchema = createInsertSchema(evStats).omit({ id: true });
+export const insertChargingRecordSchema = createInsertSchema(chargingRecords).omit({ id: true, createdAt: true });
 export const insertForecastSchema = createInsertSchema(forecasts).omit({ id: true, createdAt: true });
 
 // === TYPES ===
@@ -44,6 +61,9 @@ export type InsertRegion = z.infer<typeof insertRegionSchema>;
 
 export type EvStat = typeof evStats.$inferSelect;
 export type InsertEvStat = z.infer<typeof insertEvStatSchema>;
+
+export type ChargingRecord = typeof chargingRecords.$inferSelect;
+export type InsertChargingRecord = z.infer<typeof insertChargingRecordSchema>;
 
 export type Forecast = typeof forecasts.$inferSelect;
 export type InsertForecast = z.infer<typeof insertForecastSchema>;
