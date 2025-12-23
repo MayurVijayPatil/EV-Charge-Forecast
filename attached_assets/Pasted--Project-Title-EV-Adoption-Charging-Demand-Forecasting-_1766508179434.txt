@@ -1,0 +1,251 @@
+🎯 Project Title
+
+EV Adoption & Charging Demand Forecasting System
+
+🧠 Prompt
+
+You are a senior AI architect, data scientist, and full-stack engineer.
+Build a production-grade, end-to-end web application that predicts future Electric Vehicle (EV) adoption and charging demand using historical EV datasets.
+
+📌 Problem Statement
+
+Electric vehicle adoption is rapidly increasing, creating uncertainty around future charging infrastructure demand. Governments, city planners, and charging-station operators need accurate forecasting systems to avoid under- or over-building infrastructure.
+
+The goal is to:
+
+Predict future EV population growth
+
+Forecast charging demand (sessions, energy required)
+
+Visualize trends for decision-makers
+
+Provide scalable, real-world usable solution
+
+📊 Dataset Description
+
+Assume the dataset may contain:
+
+Year / Date
+
+Region / City / State
+
+Total EV count
+
+EV type (BEV, PHEV, Commercial, Private)
+
+Historical charging sessions
+
+Charging energy consumed (kWh)
+
+Population or vehicle ownership stats
+
+If some columns are missing:
+
+Handle gracefully
+
+Engineer useful features
+
+⚙️ Backend Requirements (MANDATORY)
+🔹 Tech Stack
+
+Python
+
+FastAPI (preferred) or Flask
+
+PostgreSQL / SQLite
+
+Scikit-learn / XGBoost / Prophet
+
+Pandas, NumPy
+
+Joblib for model storage
+
+🔹 Backend Functionalities
+
+Data Ingestion Module
+
+Upload CSV dataset
+
+Validate schema
+
+Handle missing values
+
+Normalize & encode categorical data
+
+Feature Engineering
+
+Year-on-year growth rate
+
+Rolling averages
+
+EV penetration ratio
+
+Charging demand per EV
+
+Regional demand density
+
+Model Training
+
+Train multiple models
+
+Linear Regression (baseline)
+
+Random Forest / XGBoost
+
+Time-series model (Prophet or ARIMA)
+
+Compare models using:
+
+RMSE
+
+MAE
+
+R²
+
+Select best model automatically
+
+Prediction API
+
+/predict/ev-adoption
+
+/predict/charging-demand
+
+Accept future years as input
+
+Return confidence intervals
+
+Model Versioning
+
+Save trained models
+
+Load model dynamically
+
+Retraining support
+
+🖥️ Frontend Requirements (MANDATORY)
+🔹 Tech Stack
+
+React.js (preferred) or plain HTML/CSS/JS
+
+Chart.js / Recharts / D3
+
+Tailwind / Bootstrap
+
+🔹 Frontend Features
+
+Dashboard
+
+EV adoption trend chart
+
+Charging demand forecast
+
+Year-wise projections
+
+Region-wise comparison
+
+User Inputs
+
+Select region
+
+Select EV type
+
+Choose future year range (e.g. 2025–2035)
+
+Visualizations
+
+Line charts (growth)
+
+Bar charts (demand comparison)
+
+KPI cards (Total EVs, Required Chargers)
+
+Professional UI
+
+Clean
+
+Minimal
+
+Government-dashboard style
+
+🧩 System Architecture (Explain & Implement)
+
+Frontend → API Gateway → ML Service → Database
+
+REST-based communication
+
+Modular & scalable design
+
+Include:
+
+Architecture diagram
+
+API flow explanation
+
+📈 Real-World Enhancements (VERY IMPORTANT)
+
+Include these to make project industry-ready:
+
+Charging station estimation logic
+
+Required Chargers = Predicted Charging Sessions / Avg Sessions per Charger
+
+
+Peak-load risk analysis
+
+Sustainability impact (CO₂ saved)
+
+Scalability discussion (city → country)
+
+🧪 Evaluation & Validation
+
+Cross-validation
+
+Train-test split
+
+Forecast error visualization
+
+Model explainability (feature importance)
+
+🚀 Deployment (OPTIONAL BUT BONUS)
+
+Dockerize backend
+
+Deploy on:
+
+Render / Railway / AWS
+
+Frontend on:
+
+Netlify / Vercel
+
+📄 Deliverables
+
+Complete backend code
+
+Frontend UI code
+
+Trained ML model
+
+API documentation
+
+README with:
+
+Problem
+
+Solution
+
+Tech stack
+
+Results
+
+PPT-ready explanation
+
+🏆 Output Expectation
+
+The final project must look like:
+
+A startup-grade EV analytics platform
+
+A smart-city planning tool
+
+A real government-usable solution
