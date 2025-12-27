@@ -36,6 +36,13 @@ export const api = {
         400: errorSchemas.validation,
       },
     },
+    clearAll: {
+      method: 'DELETE' as const,
+      path: '/api/stats/clear-all',
+      responses: {
+        200: z.object({ message: z.string() }),
+      },
+    },
   },
   forecasts: {
     generate: {

@@ -6,18 +6,21 @@ export interface IStorage {
   // Stats
   getEvStats(region?: string, evType?: string): Promise<typeof evStats.$inferSelect[]>;
   createEvStats(stats: InsertEvStat[]): Promise<void>;
-  
+
   // Charging Records
   createChargingRecords(records: InsertChargingRecord[]): Promise<void>;
   getChargingRecords(region?: string): Promise<typeof chargingRecords.$inferSelect[]>;
-  
+
   // Forecasts
   getForecasts(region?: string, evType?: string): Promise<typeof forecasts.$inferSelect[]>;
   createForecasts(forecastsData: InsertForecast[]): Promise<typeof forecasts.$inferSelect[]>;
-  
+
   // Regions
   getRegions(): Promise<string[]>;
   createRegion(region: InsertRegion): Promise<void>;
+
+  // Clear all data
+  clearAllData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -26,7 +29,7 @@ export class DatabaseStorage implements IStorage {
     const conditions = [];
     if (region) conditions.push(eq(evStats.region, region));
     if (evType) conditions.push(eq(evStats.evType, evType));
-    
+
     if (conditions.length > 0) {
       // @ts-ignore
       return await query.where(and(...conditions));
@@ -44,7 +47,7 @@ export class DatabaseStorage implements IStorage {
     const conditions = [];
     if (region) conditions.push(eq(forecasts.region, region));
     if (evType) conditions.push(eq(forecasts.evType, evType));
-    
+
     if (conditions.length > 0) {
       // @ts-ignore
       return await query.where(and(...conditions));
@@ -81,6 +84,14 @@ export class DatabaseStorage implements IStorage {
     if (existing.length === 0) {
       await db.insert(regions).values(region);
     }
+  }
+
+  async clearAllData() {
+    // Delete in order to respect foreign key constraints
+    await db.delete(forecasts);
+    await db.delete(evStats);
+    await db.delete(chargingRecords);
+    await db.delete(regions);
   }
 }
 

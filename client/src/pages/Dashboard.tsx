@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { StatsCard } from "@/components/StatsCard";
+import { GreenImpactTicker } from "@/components/GreenImpactTicker";
+import { RevenueCalculator } from "@/components/RevenueCalculator";
 import { ForecastForm } from "@/components/ForecastForm";
 import { AdoptionTrendChart, DemandChart } from "@/components/Charts";
 import { useDashboardStats } from "@/hooks/use-dashboard";
@@ -10,6 +12,7 @@ import { useForecasts } from "@/hooks/use-forecasts";
 import { useRegions } from "@/hooks/use-regions";
 import { Car, Zap, TrendingUp, MapPin, Filter } from "lucide-react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const [selectedRegion, setSelectedRegion] = useState("All");
@@ -17,7 +20,17 @@ export default function Dashboard() {
 
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats();
   const { data: regions } = useRegions();
-  
+
+  // Fetch model accuracy
+  const { data: modelAccuracy } = useQuery({
+    queryKey: ["/api/model/accuracy"],
+    queryFn: async () => {
+      const res = await fetch("/api/model/accuracy");
+      if (!res.ok) throw new Error("Failed to fetch model accuracy");
+      return res.json();
+    },
+  });
+
   // Filter queries
   const filters = {
     region: selectedRegion === "All" ? undefined : selectedRegion,
@@ -49,15 +62,18 @@ export default function Dashboard() {
         <Header title="Dashboard" />
 
         <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-border">
+          {/* Live Impact Ticker */}
+          <GreenImpactTicker />
+
           {/* Filters Bar */}
           <div className="flex flex-wrap items-center gap-4 mb-8 bg-card p-4 rounded-xl border border-border shadow-sm">
             <div className="flex items-center gap-2 text-muted-foreground mr-4">
               <Filter className="w-4 h-4" />
               <span className="text-sm font-medium">Filters:</span>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <select 
+              <select
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value)}
                 className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
@@ -76,13 +92,13 @@ export default function Dashboard() {
                 <option value="PHEV">PHEV (Plug-in Hybrid)</option>
               </select>
             </div>
-            
+
             <span className="text-xs text-muted-foreground ml-auto">
               Showing data for <span className="font-semibold text-foreground">{selectedRegion}</span> • <span className="font-semibold text-foreground">{selectedType}</span>
             </span>
           </div>
 
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"
@@ -91,8 +107,8 @@ export default function Dashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <motion.div variants={itemVariants}>
-                <StatsCard 
-                  title="Total EV Adoption" 
+                <StatsCard
+                  title="Total EV Adoption"
                   value={statsLoading ? "..." : dashboardStats?.totalEvs.toLocaleString() || 0}
                   icon={<Car className="w-6 h-6" />}
                   trend={dashboardStats?.growthRate}
@@ -100,8 +116,8 @@ export default function Dashboard() {
                 />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <StatsCard 
-                  title="Est. Charging Demand" 
+                <StatsCard
+                  title="Est. Charging Demand"
                   value={statsLoading ? "..." : `${((dashboardStats?.totalDemand || 0) / 1000000).toFixed(1)} GWh`}
                   icon={<Zap className="w-6 h-6" />}
                   trend={12}
@@ -109,19 +125,20 @@ export default function Dashboard() {
                 />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <StatsCard 
-                  title="Leading Region" 
+                <StatsCard
+                  title="Leading Region"
                   value={statsLoading ? "..." : dashboardStats?.topRegion || "N/A"}
                   icon={<MapPin className="w-6 h-6" />}
                   className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-none"
                 />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <StatsCard 
-                  title="Forecast Accuracy" 
-                  value="94.2%" 
+                <StatsCard
+                  title="Forecast Accuracy"
+                  value={modelAccuracy?.r2Score !== null ? `${(modelAccuracy?.r2Score * 100).toFixed(1)}%` : "No data"}
                   icon={<TrendingUp className="w-6 h-6" />}
-                  trend={2.1}
+                  trend={modelAccuracy?.confidenceLevel !== null && modelAccuracy?.confidenceLevel !== undefined ? (modelAccuracy.confidenceLevel - 93) : undefined}
+
                   trendLabel="Model confidence"
                 />
               </motion.div>
@@ -141,9 +158,9 @@ export default function Dashboard() {
                   {(historyLoading || forecastsLoading) ? (
                     <div className="h-[400px] flex items-center justify-center text-muted-foreground">Loading charts...</div>
                   ) : (
-                    <AdoptionTrendChart 
-                      historical={historicalStats || []} 
-                      forecast={forecasts || []} 
+                    <AdoptionTrendChart
+                      historical={historicalStats || []}
+                      forecast={forecasts || []}
                     />
                   )}
                 </div>
@@ -160,7 +177,7 @@ export default function Dashboard() {
 
               <motion.div variants={itemVariants} className="space-y-6">
                 <ForecastForm />
-                
+
                 <div className="bg-gradient-to-br from-secondary/10 to-transparent rounded-xl p-6 border border-secondary/20">
                   <h4 className="font-bold text-secondary mb-2">Did you know?</h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -169,6 +186,10 @@ export default function Dashboard() {
                 </div>
               </motion.div>
             </div>
+
+            <motion.div variants={itemVariants}>
+              <RevenueCalculator />
+            </motion.div>
           </motion.div>
         </div>
       </main>

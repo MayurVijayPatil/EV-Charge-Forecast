@@ -28,11 +28,18 @@ export function useStats(filters?: StatsFilters) {
 export function useUploadStats() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (formData: FormData) => {
+    mutationFn: async (file: File) => {
+      // Read file content as text
+      const csvContent = await file.text();
+
       const res = await fetch(api.stats.upload.path, {
         method: api.stats.upload.method,
-        body: formData, // Browser handles multipart/form-data headers automatically
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ csvData: csvContent }),
       });
+
       if (!res.ok) {
         if (res.status === 400) {
           const error = await res.json();

@@ -47,12 +47,36 @@ export const forecasts = pgTable("forecasts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Grid Impact Analysis Tables
+export const gridCapacity = pgTable("grid_capacity", {
+  id: serial("id").primaryKey(),
+  region: text("region").notNull(),
+  substationName: varchar("substation_name", { length: 255 }),
+  currentCapacityMw: doublePrecision("current_capacity_mw").notNull(),
+  evLoadMw: doublePrecision("ev_load_mw").notNull(),
+  upgradeNeeded: integer("upgrade_needed").notNull().default(0), // 0 = false, 1 = true
+  upgradeCostUsd: doublePrecision("upgrade_cost_usd"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chargingProfiles = pgTable("charging_profiles", {
+  id: serial("id").primaryKey(),
+  region: text("region").notNull(),
+  hourOfDay: integer("hour_of_day").notNull(), // 0-23
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 (Sunday-Saturday)
+  avgDemandKw: doublePrecision("avg_demand_kw").notNull(),
+  peakDemandKw: doublePrecision("peak_demand_kw").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SCHEMAS ===
 
 export const insertRegionSchema = createInsertSchema(regions).omit({ id: true });
 export const insertEvStatSchema = createInsertSchema(evStats).omit({ id: true });
 export const insertChargingRecordSchema = createInsertSchema(chargingRecords).omit({ id: true, createdAt: true });
 export const insertForecastSchema = createInsertSchema(forecasts).omit({ id: true, createdAt: true });
+export const insertGridCapacitySchema = createInsertSchema(gridCapacity).omit({ id: true, createdAt: true });
+export const insertChargingProfileSchema = createInsertSchema(chargingProfiles).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 
@@ -68,6 +92,12 @@ export type InsertChargingRecord = z.infer<typeof insertChargingRecordSchema>;
 export type Forecast = typeof forecasts.$inferSelect;
 export type InsertForecast = z.infer<typeof insertForecastSchema>;
 
+export type GridCapacity = typeof gridCapacity.$inferSelect;
+export type InsertGridCapacity = z.infer<typeof insertGridCapacitySchema>;
+
+export type ChargingProfile = typeof chargingProfiles.$inferSelect;
+export type InsertChargingProfile = z.infer<typeof insertChargingProfileSchema>;
+
 // API Types
 export type ForecastRequest = {
   region: string;
@@ -81,4 +111,14 @@ export type DashboardStats = {
   totalDemand: number;
   topRegion: string;
   growthRate: number;
+};
+
+export type GridImpactAnalysis = {
+  region: string;
+  totalEvLoad: number;
+  peakHour: number;
+  peakDemandKw: number;
+  capacityUtilization: number;
+  upgradeNeeded: boolean;
+  estimatedCost: number;
 };
