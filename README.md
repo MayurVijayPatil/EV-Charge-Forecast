@@ -9,7 +9,20 @@
 **Access the deployed application here:**  
 👉 **[https://ev-charge-forecast.onrender.com](https://ev-charge-forecast.onrender.com)**
 
-> **Note for Evaluators:** This project is hosted on a free-tier instance (512MB RAM). The ML forecasting feature may occasionally timeout during heavy computation due to memory constraints. For consistent performance and full evaluation of all features, we recommend running the project locally using the **Installation & Setup** instructions below. The codebase and ML models are production-ready and fully functional in a local or upgraded hosting environment.
+> **⚠️ Important Notes for Live Demo:**
+> 
+> **Initial Load Time:** The first visit may take **50-90 seconds** to load. Render's free tier spins down inactive services, requiring a "cold start" to wake up the server. Subsequent visits will be faster.
+> 
+> **ML Processing:** Forecast generation involves training multiple regression models on your dataset, which takes **10-30 seconds** depending on data size. Please wait for the process to complete.
+> 
+> **Free-Tier Limitations:** This demo runs on a free instance with **512MB RAM**. Heavy operations (simultaneous forecasts, large CSV uploads) may timeout. If you encounter errors:
+> - Wait 30 seconds and retry
+> - Avoid multiple rapid requests
+> - For full functionality, run locally (see Installation below)
+> 
+> **Database Storage:** Free-tier database has limited storage (0.5GB). If the demo appears unavailable, storage limits may have been reached. Local deployment is recommended for comprehensive testing.
+> 
+> The codebase and ML models are production-ready and fully functional in a local or upgraded hosting environment.
 
 ## 📖 Project Abstract
 As the global shift towards electric mobility accelerates, the need for data-driven infrastructure planning becomes critical. This project presents a **Full-Stack Forecasting System** that leverages **Machine Learning (Regression Analysis)** to predict future EV growth, calculate grid load impact, and estimate the financial viability of charging stations. By integrating historical data analysis with predictive modeling, this tool empowers policymakers and investors to make informed decisions for a sustainable future.
@@ -126,6 +139,17 @@ To analyze your own EV dataset:
 1. Navigate to the **Data Upload** page.
 2. Click the **Delete** button to clear the pre-loaded data.
 3. Upload your new CSV file to generate fresh forecasts based on your custom data.
+
+> **Note:** After uploading, the ML model will train on your dataset. This process takes **10-30 seconds** depending on file size. The system trains multiple regression models (Linear, Polynomial Degree 2, Polynomial Degree 3) and selects the best one based on R² score.
+
+### Generating Forecasts
+1. Go to the **Forecasts** page.
+2. Select region, EV type, and year range.
+3. Click **"Run Simulation"**.
+4. Wait for the model to process (progress indicator will show).
+5. Results will display predicted EV counts, demand (kWh), and model accuracy.
+
+> **Processing Time:** Forecast generation involves real-time ML computation and may take **15-30 seconds**. On the free-tier live demo, please avoid clicking the button multiple times.
 
 ## 📂 Project Structure
 
