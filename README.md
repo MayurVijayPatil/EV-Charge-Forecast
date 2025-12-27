@@ -86,14 +86,26 @@ npm install
 pip install pandas numpy scikit-learn
 ```
 
-### 3. Environment Configuration
-Create a `.env` file in the root directory (or use system variables):
-```env
-DATABASE_URL="postgresql://your_user:your_password@localhost:5432/ev_forecast"
+### 3. Database Setup
+**Install PostgreSQL** (if not already installed):
+- Windows: Download from [postgresql.org](https://www.postgresql.org/download/)
+- Mac: `brew install postgresql`
+- Linux: `sudo apt-get install postgresql`
+
+**Create Database:**
+```sql
+CREATE DATABASE ev_forecast;
 ```
 
-### 4. Database Initialization
-Push the schema to your local database:
+**Configure Environment:**
+Create a `.env` file in the root directory:
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ev_forecast"
+```
+> Replace `postgres:postgres` with your PostgreSQL username and password if different.
+
+### 4. Initialize Database Schema
+Push the schema to create tables:
 ```bash
 npm run db:push
 ```
