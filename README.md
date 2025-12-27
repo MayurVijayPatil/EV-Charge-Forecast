@@ -107,6 +107,14 @@ npm run dev
 
 ---
 
+## 📖 Usage Guide
+
+### Uploading Custom Data
+To analyze your own EV dataset:
+1. Navigate to the **Data Upload** page.
+2. Click the **Delete** button to clear the pre-loaded data.
+3. Upload your new CSV file to generate fresh forecasts based on your custom data.
+
 ## 📂 Project Structure
 
 ```bash
