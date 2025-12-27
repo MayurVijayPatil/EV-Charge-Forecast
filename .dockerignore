@@ -1,0 +1,5 @@
+node_modules
+dist
+.env
+.git
+attached_assets/indian_ev_data.csv
