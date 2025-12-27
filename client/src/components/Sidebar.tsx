@@ -42,8 +42,10 @@ export function Sidebar() {
       )}>
         <div className="p-6 border-b border-border flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-              <BarChart3 className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6" fill="white">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+              </svg>
             </div>
             <div>
               <h1 className="font-display font-bold text-xl leading-none">EV Forecaster</h1>
