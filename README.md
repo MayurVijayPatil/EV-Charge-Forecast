@@ -9,7 +9,7 @@
 **Access the deployed application here:**  
 👉 **[https://ev-charge-forecast.onrender.com](https://ev-charge-forecast.onrender.com)**
 
-> **Note for Evaluators:** This project is hosted on a free-tier usage plan. If the live website is unavailable (due to database storage limits or inactivity), we recommend accessing the source code and following the **Installation & Setup** instructions below to run the project locally.
+> **Note for Evaluators:** This project is hosted on a free-tier usage plan. If the live website is unavailable (due to database storage limits or inactivity), I recommend accessing the source code and following the **Installation & Setup** instructions below to run the project locally.
 
 ## 📖 Project Abstract
 As the global shift towards electric mobility accelerates, the need for data-driven infrastructure planning becomes critical. This project presents a **Full-Stack Forecasting System** that leverages **Machine Learning (Regression Analysis)** to predict future EV growth, calculate grid load impact, and estimate the financial viability of charging stations. By integrating historical data analysis with predictive modeling, this tool empowers policymakers and investors to make informed decisions for a sustainable future.
